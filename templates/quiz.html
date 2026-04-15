@@ -1,0 +1,33 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quiz</title>
+</head>
+<body>
+
+<h2>Generated Quiz</h2>
+
+<form method="POST">
+
+    {% for q in quiz %}
+        {% set q_index = loop.index0 %}
+
+        <p><b>{{ loop.index }}. {{ q.question }}</b></p>
+
+        {% for option in q.options %}
+            <input type="radio" 
+                   name="q{{ q_index }}" 
+                   value="{{ option }}" 
+                   required>
+            {{ option }}<br>
+        {% endfor %}
+
+        <br>
+    {% endfor %}
+
+    <button type="submit">Submit Quiz</button>
+</form>
+
+</body>
+</html>

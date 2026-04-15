@@ -1,0 +1,28 @@
+body {
+    font-family: Arial;
+    margin: 40px;
+    background: #f4f4f4;
+}
+
+.content {
+    font-size: 18px;
+    line-height: 1.8;
+}
+
+.easy {
+    background-color: #4CAF50;
+    color: white;
+    padding: 3px;
+}
+
+.medium {
+    background-color: #FFC107;
+    color: black;
+    padding: 3px;
+}
+
+.hard {
+    background-color: #F44336;
+    color: white;
+    padding: 3px;
+}
