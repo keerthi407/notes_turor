@@ -19,13 +19,13 @@ def generate_quiz(sentences):
     for s in sentences:
         words_pool.extend(s.split())
 
-    for s in sentences[:5]:   # Generate 5 questions
+    for s in sentences[:5]:
         words = s.split()
         if len(words) > 5:
             answer = random.choice(words)
             question = s.replace(answer, "_____")
 
-            options = random.sample(words_pool, 3)
+            options = random.sample(words_pool, min(3, len(words_pool)))
             if answer not in options:
                 options.append(answer)
 
@@ -68,12 +68,14 @@ def index():
         analyzed = []
         for s in sentences:
             score = textstat.flesch_reading_ease(s)
+
             if score > 60:
                 level = "easy"
             elif score > 30:
                 level = "medium"
             else:
                 level = "hard"
+
             analyzed.append((s, level))
 
         global_quiz = generate_quiz(sentences)
@@ -89,6 +91,7 @@ def quiz():
 
     if request.method == "POST":
         score = 0
+
         for i, q in enumerate(global_quiz):
             selected = request.form.get(f"q{i}")
             if selected == q["answer"]:
@@ -99,5 +102,7 @@ def quiz():
     return render_template("quiz.html", quiz=global_quiz)
 
 
+# 🔥 IMPORTANT FIX FOR RENDER + PHONE ACCESS
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
