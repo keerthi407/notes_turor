@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request
 import PyPDF2
 import textstat
 import os
@@ -6,7 +6,8 @@ import random
 
 app = Flask(__name__)
 
-UPLOAD_FOLDER = "uploads"
+# 🔥 Use /tmp for Render (important)
+UPLOAD_FOLDER = "/tmp/uploads"
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
@@ -44,65 +45,81 @@ def generate_quiz(sentences):
 def index():
     global global_quiz
 
-    if request.method == "POST":
-        file = request.files.get("pdf")
-        if not file:
-            return "No file selected"
+    try:
+        if request.method == "POST":
 
-        filepath = os.path.join(UPLOAD_FOLDER, file.filename)
-        file.save(filepath)
+            # 🔥 FIX: Proper file check
+            if 'pdf' not in request.files:
+                return "No file part"
 
-        reader = PyPDF2.PdfReader(filepath)
-        text = ""
+            file = request.files['pdf']
 
-        for page in reader.pages:
-            page_text = page.extract_text()
-            if page_text:
-                text += page_text
+            if file.filename == '':
+                return "No selected file"
 
-        if not text.strip():
-            return "PDF has no readable text"
+            # 🔥 FIX: Safe filename
+            filename = file.filename.replace(" ", "_")
+            filepath = os.path.join(UPLOAD_FOLDER, filename)
+            file.save(filepath)
 
-        sentences = [s.strip() for s in text.split('.') if len(s.strip()) > 30]
+            reader = PyPDF2.PdfReader(filepath)
+            text = ""
 
-        analyzed = []
-        for s in sentences:
-            score = textstat.flesch_reading_ease(s)
+            for page in reader.pages:
+                page_text = page.extract_text()
+                if page_text:
+                    text += page_text
 
-            if score > 60:
-                level = "easy"
-            elif score > 30:
-                level = "medium"
-            else:
-                level = "hard"
+            if not text.strip():
+                return "PDF has no readable text"
 
-            analyzed.append((s, level))
+            sentences = [s.strip() for s in text.split('.') if len(s.strip()) > 30]
 
-        global_quiz = generate_quiz(sentences)
+            analyzed = []
+            for s in sentences:
+                score = textstat.flesch_reading_ease(s)
 
-        return render_template("result.html", data=analyzed)
+                if score > 60:
+                    level = "easy"
+                elif score > 30:
+                    level = "medium"
+                else:
+                    level = "hard"
 
-    return render_template("index.html")
+                analyzed.append((s, level))
+
+            global_quiz = generate_quiz(sentences)
+
+            return render_template("result.html", data=analyzed)
+
+        return render_template("index.html")
+
+    except Exception as e:
+        return f"Error: {str(e)}"
 
 
 @app.route("/quiz", methods=["GET", "POST"])
 def quiz():
     global global_quiz
 
-    if request.method == "POST":
-        score = 0
+    try:
+        if request.method == "POST":
+            score = 0
 
-        for i, q in enumerate(global_quiz):
-            selected = request.form.get(f"q{i}")
-            if selected == q["answer"]:
-                score += 1
+            for i, q in enumerate(global_quiz):
+                selected = request.form.get(f"q{i}")
+                if selected == q["answer"]:
+                    score += 1
 
-        return render_template("score.html", score=score, total=len(global_quiz))
+            return render_template("score.html", score=score, total=len(global_quiz))
 
-    return render_template("quiz.html", quiz=global_quiz)
+        return render_template("quiz.html", quiz=global_quiz)
+
+    except Exception as e:
+        return f"Error: {str(e)}"
 
 
-# 🔥 IMPORTANT FIX FOR RENDER + PHONE ACCESS
+# 🔥 FINAL FIX FOR RENDER + PHONE
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
