@@ -4,15 +4,16 @@
     <title>AI Notes Tutor</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- 🔥 CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
+    <!-- 🔥 LOGO -->
+    <img src="{{ url_for('static', filename='logo.png') }}" width="120">
+
     <h1>AI Enhanced Offline Notes Tutor</h1>
     <h3>Upload Your PDF Notes</h3>
 
-    <!-- 🔥 IMPORTANT FIXES -->
     <form method="POST" enctype="multipart/form-data">
         <input type="file" name="pdf" accept=".pdf" required>
         <br><br>
